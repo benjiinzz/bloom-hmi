@@ -460,7 +460,7 @@ from
 	modelog
 where
   upper_inf(timestamp);
-if numcode = 0 then
+if numcode = 0 and new.val <> 0 then
 update
 	modelog
 set
