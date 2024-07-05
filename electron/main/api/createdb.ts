@@ -214,7 +214,7 @@ where
 	and link = false;
 
 if last_updated is not null
-and last_updated < current_timestamp - interval '5 second'
+and last_updated < current_timestamp - interval '60 second'
 and numcode <> 0 then
 
 with numbers as (

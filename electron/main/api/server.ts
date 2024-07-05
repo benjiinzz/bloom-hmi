@@ -422,13 +422,15 @@ const readModbusData = async function (client, port, slave, group) {
         port.mbsState = MBS_STATE_FAIL_READ;
         //mbsStatus = "[" + port.path + "]" + "[#" + slave.sId + "]COILS" + " " + e.message;
         //console.log(mbsStatus);
-        await slave.mbarr.coils.tags.reduce(async (memo, tag) => {
-          await memo;
-          const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *', ['dev', slave.name, 'name', tag.name]);
-          if (rows[0]) {
-            sse.send(rows, 'tags', tag.name);
-          }
-        }, undefined);
+        if (e.message.includes('Timed out')) {
+          await slave.mbarr.coils.tags.reduce(async (memo, tag) => {
+            await memo;
+            const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *', ['dev', slave.name, 'name', tag.name]);
+            if (rows[0]) {
+              sse.send(rows, 'tags', tag.name);
+            }
+          }, undefined);
+        }
       }
     }
     if (slave.mbarr.discr) {
@@ -451,13 +453,15 @@ const readModbusData = async function (client, port, slave, group) {
         port.mbsState = MBS_STATE_FAIL_READ;
         //mbsStatus = "[" + port.path + "]" + "[#" + slave.sId + "]COILS" + " " + e.message;
         //console.log(mbsStatus);
-        await slave.mbarr.discr.tags.reduce(async (memo, tag) => {
-          await memo;
-          const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *', ['dev', slave.name, 'name', tag.name]);
-          if (rows[0]) {
-            sse.send(rows, 'tags', tag.name);
-          }
-        }, undefined);
+        if (e.message.includes('Timed out')) {
+          await slave.mbarr.discr.tags.reduce(async (memo, tag) => {
+            await memo;
+            const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *', ['dev', slave.name, 'name', tag.name]);
+            if (rows[0]) {
+              sse.send(rows, 'tags', tag.name);
+            }
+          }, undefined);
+        }
       }
     }
     if (slave.mbarr.hregs) {
@@ -496,16 +500,18 @@ const readModbusData = async function (client, port, slave, group) {
         }, undefined);
       } catch (e) {
         port.mbsState = MBS_STATE_FAIL_READ;
-        await slave.mbarr.hregs.tags.reduce(async (memo, tag) => {
-          await memo;
-          //mbsStatus = "[" + port.path + "]" + "[#" + slave.sId + "]" + tag.name + " " + e.message;
-          //console.log(mbsStatus);
-          //console.log(e);
-          const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING tag, (round(val::numeric,(tag->>$5)::integer)) as val, updated, link;', ['dev', slave.name, 'name', tag.name, 'dec']);
-          if (rows[0]) {
-            sse.send(rows, 'tags', tag.name);
-          }
-        }, undefined);
+        if (e.message.includes('Timed out')) {
+          await slave.mbarr.hregs.tags.reduce(async (memo, tag) => {
+            await memo;
+            //mbsStatus = "[" + port.path + "]" + "[#" + slave.sId + "]" + tag.name + " " + e.message;
+            //console.log(mbsStatus);
+            //console.log(e);
+            const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING tag, (round(val::numeric,(tag->>$5)::integer)) as val, updated, link;', ['dev', slave.name, 'name', tag.name, 'dec']);
+            if (rows[0]) {
+              sse.send(rows, 'tags', tag.name);
+            }
+          }, undefined);
+        }
       }
     }
     if (slave.mbarr.iregs) {
@@ -547,24 +553,26 @@ const readModbusData = async function (client, port, slave, group) {
         }, undefined);
       } catch (e) {
         port.mbsState = MBS_STATE_FAIL_READ;
-        await slave.mbarr.iregs.tags.reduce(async (memo, tag) => {
-          await memo;
-          //mbsStatus = "[" + port.path + "]" + "[#" + slave.sId + "]" + tag.name + " " + e.message;
-          //console.log(mbsStatus);
-          //console.log(e);
-          if (tag.name == 'modeCode') {
-            const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *;', ['dev', slave.name, 'name', tag.name]);
-            if (rows[0]) {
-              sse.send(rows, 'tags', tag.name);
+        if (e.message.includes('Timed out')) {
+          await slave.mbarr.iregs.tags.reduce(async (memo, tag) => {
+            await memo;
+            //mbsStatus = "[" + port.path + "]" + "[#" + slave.sId + "]" + tag.name + " " + e.message;
+            //console.log(mbsStatus);
+            //console.log(e);
+            if (tag.name == 'modeCode') {
+              const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *;', ['dev', slave.name, 'name', tag.name]);
+              if (rows[0]) {
+                sse.send(rows, 'tags', tag.name);
+              }
             }
-          }
-          else {
-            const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING tag, (round(val::numeric,(tag->>$5)::integer)) as val, updated, link;', ['dev', slave.name, 'name', tag.name, 'dec']);
-            if (rows[0]) {
-              sse.send(rows, 'tags', tag.name);
+            else {
+              const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING tag, (round(val::numeric,(tag->>$5)::integer)) as val, updated, link;', ['dev', slave.name, 'name', tag.name, 'dec']);
+              if (rows[0]) {
+                sse.send(rows, 'tags', tag.name);
+              }
             }
-          }
-        }, undefined);
+          }, undefined);
+        }
       }
     }
   }
@@ -596,8 +604,8 @@ const readModbusData = async function (client, port, slave, group) {
       info.rows[0]['monthinfo'] && (info.rows[0]['monthinfo']['runtime'] = parseInterval(info.rows[0]['monthinfo']['runtime']))
       info.rows[0]['lifetime'] && (info.rows[0]['lifetime']['motor'] = parseInterval(info.rows[0]['lifetime']['motor']))
       info.rows[0]['modeCode'] = { val: rows[0]['val'], updated: rows[0]['updated'] }
-      console.log('wait')
-    } while (info.rows[0]['tags'].filter((tag: any) => {return ['realPicksLastRun', 'picksLastRun'].includes(tag['tag']['name']) && ((new Date(tag['updated'])) > (new Date(rows[0]['updated']))) }).length != 2)
+      //console.log('wait')
+    } while (info.rows[0]['tags'].filter((tag: any) => { return ['realPicksLastRun', 'picksLastRun'].includes(tag['tag']['name']) && ((new Date(tag['updated'])) > (new Date(rows[0]['updated']))) }).length != 2)
     sse.send(info.rows[0], 'fullinfo', 'all');
     sse.send(rows, 'tags', 'modeCode');
     //console.log('[' + new Date().toJSON() + ']' + "modeCode processed")
@@ -623,9 +631,11 @@ const readModbusData = async function (client, port, slave, group) {
               port.mbsState = MBS_STATE_FAIL_READ;
               //mbsStatus = "[" + port.path + "]" + "[#" + slave.sId + "]" + tag.name + " " + e.message;
               //console.log(mbsStatus);
-              const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *', ['dev', slave.name, 'name', tag.name]);
-              if (rows[0]) {
-                sse.send(rows, 'tags', tag.name);
+              if (e.message.includes('Timed out')) {
+                const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *', ['dev', slave.name, 'name', tag.name]);
+                if (rows[0]) {
+                  sse.send(rows, 'tags', tag.name);
+                }
               }
               if (count > 1) { count--; await process(slave.tags[count - 1]); }
             }
@@ -663,9 +673,11 @@ const readModbusData = async function (client, port, slave, group) {
               port.mbsState = MBS_STATE_FAIL_READ;
               //mbsStatus = "[" + port.path + "]" + "[#" + slave.sId + "]" + tag.name + " " + e.message;
               //console.log(mbsStatus);
-              const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING tag, (round(val::numeric,(tag->>$5)::integer)) as val, updated, link;', ['dev', slave.name, 'name', tag.name, 'dec']);
-              if (rows[0]) {
-                sse.send(rows, 'tags', tag.name);
+              if (e.message.includes('Timed out')) {
+                const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING tag, (round(val::numeric,(tag->>$5)::integer)) as val, updated, link;', ['dev', slave.name, 'name', tag.name, 'dec']);
+                if (rows[0]) {
+                  sse.send(rows, 'tags', tag.name);
+                }
               }
               if (count > 1) { count--; await process(slave.tags[count - 1]); }
             }
@@ -690,9 +702,11 @@ const readModbusData = async function (client, port, slave, group) {
               port.mbsState = MBS_STATE_FAIL_READ;
               //mbsStatus = "[" + port.path + "]" + "[#" + slave.sId + "]" + tag.name + " " + e.message;
               //console.log(mbsStatus);
-              const { rows } = db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *;', ['dev', slave.name, 'name', tag.name]);
-              if (rows[0]) {
-                sse.send(rows, 'tags', tag.name);
+              if (e.message.includes('Timed out')) {
+                const { rows } = db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *;', ['dev', slave.name, 'name', tag.name]);
+                if (rows[0]) {
+                  sse.send(rows, 'tags', tag.name);
+                }
               }
               if (count > 1) { count--; await process(slave.tags[count - 1]); }
             }
@@ -755,16 +769,18 @@ const readModbusData = async function (client, port, slave, group) {
               //mbsStatus = "[" + port.path + "]" + "[#" + slave.sId + "]" + tag.name + " " + e.message;
               //console.log(mbsStatus);
               //console.log(e);
-              if (tag.name == 'modeCode') {
-                const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false, val=0 where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *;', ['dev', slave.name, 'name', tag.name]);
-                if (rows[0]) {
-                  sse.send(rows, 'tags', tag.name);
+              if (e.message.includes('Timed out')) {
+                if (tag.name == 'modeCode') {
+                  const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false, val=0 where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING *;', ['dev', slave.name, 'name', tag.name]);
+                  if (rows[0]) {
+                    sse.send(rows, 'tags', tag.name);
+                  }
                 }
-              }
-              else {
-                const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING tag, (round(val::numeric,(tag->>$5)::integer)) as val, updated, link;', ['dev', slave.name, 'name', tag.name, 'dec']);
-                if (rows[0]) {
-                  sse.send(rows, 'tags', tag.name);
+                else {
+                  const { rows } = await db.query('UPDATE tags SET updated=current_timestamp, link=false where tag->>$1=$2 and tag->>$3=$4 AND link=true RETURNING tag, (round(val::numeric,(tag->>$5)::integer)) as val, updated, link;', ['dev', slave.name, 'name', tag.name, 'dec']);
+                  if (rows[0]) {
+                    sse.send(rows, 'tags', tag.name);
+                  }
                 }
               }
               if (count > 1) { count--; await process(slave.tags[count - 1]); }
