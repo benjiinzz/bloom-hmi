@@ -168,7 +168,7 @@ router.post('/update', async (req, res) => {
       switch (process.platform) {
         case 'linux':
           if (opIP.name) {
-            sudo.exec("nmcli general hostname " + opIP.name, options, async (error, data, getter) => {
+            sudo.exec("nmcli general hostname " + opIP.name + " && rm ~/.Xauthority && touch ~/.Xauthority && xauth generate :0 . trusted && xauth generate unix:0 . trusted", options, async (error, data, getter) => {
               if (!error) {
                 await db.query('UPDATE hwconfig set data = jsonb_set(data, $2, $3) where name=$1', ['ipConf', '{opIP, name}', '"' + opIP.name + '"']);
                 res.status(200).json({
